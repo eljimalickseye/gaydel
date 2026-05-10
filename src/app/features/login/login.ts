@@ -9,136 +9,93 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="login-page coffee-gradient flex-center">
-      <div class="login-card glass-card">
-        <div class="header">
+    <div class="login-page flex-center">
+      <div class="bg-overlay"></div>
+      <div class="login-card glass-card fade-in">
+        <div class="logo-area">
+          <div class="coffee-icon">☕</div>
           <h1>GAYDEL</h1>
-          <p>Gestion & Vente de Café Premium</p>
-        </div>
-        
-        <div class="tabs">
-          <button [class.active]="loginMethod === 'email'" (click)="loginMethod = 'email'">Email</button>
-          <button [class.active]="loginMethod === 'phone'" (click)="loginMethod = 'phone'">Téléphone</button>
+          <div class="separator"></div>
+          <p>L'excellence du café en un clic</p>
         </div>
 
-        <form *ngIf="loginMethod === 'email'" (submit)="onLogin()">
+        <form (submit)="onLogin()">
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="email" name="email" placeholder="votre@email.com" required>
+            <label>Identifiant</label>
+            <div class="input-wrapper">
+              <input type="text" [(ngModel)]="username" name="username" placeholder="Entrez votre identifiant" required>
+            </div>
           </div>
           <div class="form-group">
             <label>Mot de passe</label>
-            <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+            <div class="input-wrapper">
+              <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
+            </div>
           </div>
-          <button type="submit" class="premium-btn coffee-gradient" [disabled]="loading">
-            {{ loading ? 'Connexion...' : 'Se connecter' }}
+          <button type="submit" class="premium-btn gold-gradient shadow-btn" [disabled]="loading">
+            {{ loading ? 'Connexion en cours...' : 'SE CONNECTER' }}
           </button>
         </form>
 
-        <form *ngIf="loginMethod === 'phone'" (submit)="onPhoneLogin()">
-          <div class="form-group" *ngIf="!verificationSent">
-            <label>Numéro de Téléphone</label>
-            <input type="tel" [(ngModel)]="phone" name="phone" placeholder="+221 77 000 00 00" required>
-          </div>
-          <div class="form-group" *ngIf="verificationSent">
-            <label>Code de Vérification</label>
-            <input type="text" [(ngModel)]="code" name="code" placeholder="123456" required>
-          </div>
-          <button type="submit" class="premium-btn coffee-gradient" [disabled]="loading">
-            {{ loading ? 'Chargement...' : (verificationSent ? 'Vérifier le code' : 'Envoyer SMS') }}
-          </button>
-          <div id="recaptcha-container"></div>
-        </form>
+        <div class="divider"><span>OU CONTINUER AVEC</span></div>
 
-        <div class="divider"><span>OU</span></div>
-
-        <button (click)="onGoogleLogin()" class="google-btn">
+        <button (click)="onGoogleLogin()" class="google-btn glass-btn">
           <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-          Continuer avec Google
+          Google Account
         </button>
       </div>
     </div>
   `,
   styles: [`
-    .login-page { width: 100vw; height: 100vh; }
+    .login-page { 
+      width: 100vw; height: 100vh; position: relative;
+      background: url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    }
+    .bg-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(62, 39, 35, 0.9), rgba(0, 0, 0, 0.7));
+    }
     .login-card {
-      width: 400px;
-      padding: 40px;
-      text-align: center;
-      h1 { margin: 0; font-size: 2.5rem; letter-spacing: 4px; }
-      p { color: rgba(255,255,255,0.7); margin-bottom: 30px; }
+      width: 420px; padding: 50px; text-align: center; position: relative; z-index: 10;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 30px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      animation: slideUp 0.8s ease-out;
     }
-    .tabs {
-      display: flex; gap: 10px; margin-bottom: 20px;
-      button {
-        flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-        color: #fff; border-radius: 8px; cursor: pointer; transition: all 0.3s;
-        &.active { background: var(--secondary-color); border-color: var(--secondary-color); font-weight: 700; }
-      }
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      text-align: left;
+    .logo-area {
+      margin-bottom: 40px;
+      .coffee-icon { font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--secondary-color)); }
+      h1 { margin: 0; font-size: 2.8rem; letter-spacing: 8px; color: #fff; font-weight: 900; }
+      .separator { width: 50px; height: 3px; background: var(--secondary-color); margin: 15px auto; border-radius: 2px; }
+      p { color: rgba(255,255,255,0.6); font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
     }
     .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      label { font-size: 0.9rem; font-weight: 600; color: #fff; }
+      margin-bottom: 25px; text-align: left;
+      label { font-size: 0.8rem; font-weight: 700; color: var(--secondary-color); text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 1px; }
       input {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
-        padding: 12px;
-        border-radius: 8px;
-        color: #fff;
-        outline: none;
-        width: 100%;
-        box-sizing: border-box;
-        &::placeholder { color: rgba(255,255,255,0.4); }
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+        padding: 15px; border-radius: 12px; color: #fff; width: 100%; box-sizing: border-box;
+        transition: all 0.3s; font-size: 1rem;
+        &:focus { background: rgba(255,255,255,0.1); border-color: var(--secondary-color); box-shadow: 0 0 15px rgba(215, 179, 119, 0.2); outline: none; }
       }
     }
-    .premium-btn { margin-top: 10px; border: none; cursor: pointer; color: #fff; width: 100%; }
-    .divider {
-      margin: 30px 0;
-      position: relative;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      span {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        background: #3e2723;
-        padding: 0 10px;
-        font-size: 0.8rem;
-        color: rgba(255,255,255,0.5);
-      }
-    }
+    .gold-gradient { background: linear-gradient(45deg, #d7b377, #b8860b); color: #3e2723 !important; font-weight: 800; letter-spacing: 2px; }
+    .shadow-btn { box-shadow: 0 10px 20px rgba(184, 134, 11, 0.3); border: none; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+    .shadow-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(184, 134, 11, 0.4); }
+    .divider { margin: 30px 0; font-size: 0.7rem; color: rgba(255,255,255,0.3); letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
     .google-btn {
-      width: 100%;
-      padding: 12px;
-      background: #fff;
-      border: none;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      color: #333;
-      img { width: 20px; }
+      width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 12px;
+      color: #fff; font-weight: 600; cursor: pointer; transition: background 0.3s;
+      img { width: 18px; }
+      &:hover { background: rgba(255,255,255,0.15); }
     }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   `]
 })
 export class LoginComponent {
-  loginMethod: 'email' | 'phone' = 'email';
-  email = '';
+  username = '';
   password = '';
-  phone = '';
-  code = '';
-  verificationSent = false;
-  confirmationResult: any = null;
   loading = false;
   
   private authService = inject(AuthService);
@@ -147,31 +104,13 @@ export class LoginComponent {
   async onLogin() {
     this.loading = true;
     try {
-      await this.authService.loginWithEmail(this.email, this.password);
+      // Map username to a mock email for Firebase Auth
+      const email = this.username.includes('@') ? this.username : `${this.username}@gaydel.com`;
+      await this.authService.loginWithEmail(email, this.password);
       this.router.navigate(['/dashboard']);
     } catch (e) {
       console.error(e);
-      alert('Erreur de connexion');
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  async onPhoneLogin() {
-    this.loading = true;
-    try {
-      if (!this.verificationSent) {
-        const verifier = this.authService.setupRecaptcha('recaptcha-container');
-        this.confirmationResult = await this.authService.loginWithPhone(this.phone, verifier);
-        this.verificationSent = true;
-        alert('Code envoyé !');
-      } else {
-        await this.confirmationResult.confirm(this.code);
-        this.router.navigate(['/dashboard']);
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Erreur: ' + (e as any).message);
+      alert('Identifiant ou mot de passe incorrect');
     } finally {
       this.loading = false;
     }

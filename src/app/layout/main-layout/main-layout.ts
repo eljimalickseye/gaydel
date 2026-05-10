@@ -27,16 +27,12 @@ import { HeaderComponent } from '../components/header/header';
       overflow: hidden;
     }
     .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: #fdfaf7; // Soft cream background
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png'), #fdfaf7;
     }
     .page-container {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 20px 20px 20px;
+      flex: 1; overflow-y: auto; padding: 10px 30px 30px 30px;
+      scrollbar-width: thin; scrollbar-color: var(--primary-color) transparent;
     }
   `]
 })

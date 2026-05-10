@@ -1,17 +1,20 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DataService } from '../../core/services/data.service';
 import { Stock } from '../../core/models/app.models';
 import { IconService } from '../../core/services/icon.service';
+import { map } from 'rxjs';
+import { StockDialogComponent } from './stock-dialog';
 
 @Component({
   selector: 'app-stock-management',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, AsyncPipe, MatDialogModule],
   template: `
     <div class="stock-page">
       <div class="header">
@@ -19,28 +22,28 @@ import { IconService } from '../../core/services/icon.service';
           <h2>Gestion des Stocks</h2>
           <p>Suivez et gérez votre inventaire de café en temps réel.</p>
         </div>
-        <button class="premium-btn coffee-gradient flex-center">
+        <button class="premium-btn coffee-gradient flex-center" (click)="addItem()">
           <mat-icon>add</mat-icon> Ajouter du Stock
         </button>
       </div>
 
-      <div class="stats-row">
+      <div class="stats-row" *ngIf="stats$ | async as s">
         <div class="stat-card glass-card">
           <span class="label">Total Inventaire</span>
-          <span class="value">450 kg</span>
+          <span class="value">{{s.total}} kg</span>
         </div>
         <div class="stat-card glass-card warning">
           <span class="label">Stock Faible</span>
-          <span class="value">3 Articles</span>
+          <span class="value">{{s.low}} Articles</span>
         </div>
         <div class="stat-card glass-card success">
-          <span class="label">Entrées du jour</span>
-          <span class="value">+25 kg</span>
+          <span class="label">Entrées du mois</span>
+          <span class="value">+{{s.total}} kg</span>
         </div>
       </div>
 
       <div class="table-container glass-card">
-        <table mat-table [dataSource]="stocks" class="mat-elevation-z0">
+        <table mat-table [dataSource]="(stocks$ | async) || []" class="mat-elevation-z0">
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef> Produit </th>
             <td mat-cell *matCellDef="let element"> 
@@ -58,15 +61,15 @@ import { IconService } from '../../core/services/icon.service';
 
           <ng-container matColumnDef="warehouse">
             <th mat-header-cell *matHeaderCellDef> Entrepôt </th>
-            <td mat-cell *matCellDef="let element"> {{element.warehouseName}} </td>
+            <td mat-cell *matCellDef="let element"> {{element.warehouseName || 'Entrepôt Central'}} </td>
           </ng-container>
 
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef> Statut </th>
             <td mat-cell *matCellDef="let element">
               <mat-chip-listbox>
-                <mat-chip [color]="element.quantity <= element.minThreshold ? 'warn' : 'primary'" selected>
-                  {{element.quantity <= element.minThreshold ? 'Faible' : 'Optimale'}}
+                <mat-chip [color]="element.quantity <= (element.minThreshold || 20) ? 'warn' : 'primary'" selected>
+                  {{element.quantity <= (element.minThreshold || 20) ? 'Faible' : 'Optimale'}}
                 </mat-chip>
               </mat-chip-listbox>
             </td>
@@ -75,8 +78,8 @@ import { IconService } from '../../core/services/icon.service';
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let element">
-              <button mat-icon-button color="primary"><mat-icon>edit</mat-icon></button>
-              <button mat-icon-button color="warn"><mat-icon>delete</mat-icon></button>
+              <button mat-icon-button color="primary" (click)="editItem(element)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="deleteItem(element)"><mat-icon>delete</mat-icon></button>
             </td>
           </ng-container>
 
@@ -119,14 +122,50 @@ import { IconService } from '../../core/services/icon.service';
 export class StockManagementComponent implements OnInit {
   dataService = inject(DataService);
   iconService = inject(IconService);
+  dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['name', 'quantity', 'warehouse', 'status', 'actions'];
-  stocks: any[] = [
-    { name: 'Café Arabica - Grains', quantity: 120, unit: 'kg', warehouseName: 'Entrepôt Central', minThreshold: 50 },
-    { name: 'Café Robusta - Moulu', quantity: 15, unit: 'kg', warehouseName: 'Dakar Nord', minThreshold: 30 },
-    { name: 'Capsules Espresso Gold', quantity: 500, unit: 'pcs', warehouseName: 'Entrepôt Central', minThreshold: 100 },
-    { name: 'Café Bio - Vert', quantity: 10, unit: 'kg', warehouseName: 'Saint-Louis', minThreshold: 20 }
-  ];
+  
+  stocks$ = this.dataService.getList<any>('stock', { sortField: 'createdAt', sortDirection: 'desc' });
+  
+  stats$ = this.stocks$.pipe(
+    map(stocks => ({
+      total: stocks.reduce((acc, curr) => acc + (curr.quantity || 0), 0),
+      low: stocks.filter(s => s.quantity <= (s.minThreshold || 20)).length
+    }))
+  );
 
   ngOnInit() {}
+
+  async addItem() {
+    const dialogRef = this.dialog.open(StockDialogComponent, {
+      width: '450px',
+      data: { title: 'Ajouter un nouveau stock' }
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+      if (result) {
+        await this.dataService.add('stock', result);
+      }
+    });
+  }
+
+  async editItem(item: any) {
+    const dialogRef = this.dialog.open(StockDialogComponent, {
+      width: '450px',
+      data: { title: 'Modifier le stock', item }
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+      if (result) {
+        await this.dataService.update('stock', item.id, result);
+      }
+    });
+  }
+
+  async deleteItem(item: any) {
+    if (confirm(`Supprimer ${item.name} du stock ?`)) {
+      await this.dataService.delete('stock', item.id);
+    }
+  }
 }

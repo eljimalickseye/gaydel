@@ -21,9 +21,19 @@ import { Observable } from 'rxjs';
 export class DataService {
   private firestore = inject(Firestore);
 
-  getList<T>(path: string, ...queryFn: any[]): Observable<T[]> {
+  getList<T>(path: string, options?: { filterField?: string, filterValue?: any, sortField?: string, sortDirection?: 'asc' | 'desc' }): Observable<T[]> {
     const colRef = collection(this.firestore, path);
-    const q = query(colRef, ...queryFn);
+    let constraints: any[] = [];
+
+    if (options?.filterField) {
+      constraints.push(where(options.filterField, '==', options.filterValue));
+    }
+    
+    if (options?.sortField) {
+      constraints.push(orderBy(options.sortField, options.sortDirection || 'asc'));
+    }
+    
+    const q = query(colRef, ...constraints);
     return collectionData(q, { idField: 'id' }) as Observable<T[]>;
   }
 

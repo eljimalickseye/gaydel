@@ -1,16 +1,19 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DataService } from '../../core/services/data.service';
 import { UserProfile } from '../../core/models/app.models';
+import { AuthService } from '../../core/services/auth.service';
+import { UserDialogComponent } from './user-dialog';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, AsyncPipe, MatDialogModule],
   template: `
     <div class="users-page">
       <div class="header">
@@ -18,13 +21,13 @@ import { UserProfile } from '../../core/models/app.models';
           <h2>Gestion des Utilisateurs</h2>
           <p>Administrez les accès et les rôles de la plateforme GAYDEL.</p>
         </div>
-        <button class="premium-btn coffee-gradient flex-center">
+        <button class="premium-btn coffee-gradient flex-center" (click)="addUser()">
           <mat-icon>person_add</mat-icon> Ajouter un Utilisateur
         </button>
       </div>
 
       <div class="table-container glass-card">
-        <table mat-table [dataSource]="users" class="mat-elevation-z0">
+        <table mat-table [dataSource]="(users$ | async) || []" class="mat-elevation-z0">
           <ng-container matColumnDef="user">
             <th mat-header-cell *matHeaderCellDef> Utilisateur </th>
             <td mat-cell *matCellDef="let element"> 
@@ -42,7 +45,7 @@ import { UserProfile } from '../../core/models/app.models';
             <th mat-header-cell *matHeaderCellDef> Rôle </th>
             <td mat-cell *matCellDef="let element">
               <mat-chip-listbox>
-                <mat-chip class="role-chip" [ngClass]="element.role.toLowerCase()">
+                <mat-chip class="role-chip" [ngClass]="element.role?.toLowerCase() || ''">
                   {{element.role}}
                 </mat-chip>
               </mat-chip-listbox>
@@ -61,7 +64,7 @@ import { UserProfile } from '../../core/models/app.models';
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let element">
               <button mat-icon-button color="primary"><mat-icon>security</mat-icon></button>
-              <button mat-icon-button color="warn"><mat-icon>block</mat-icon></button>
+              <button mat-icon-button color="warn" (click)="deleteUser(element)"><mat-icon>delete</mat-icon></button>
             </td>
           </ng-container>
 
@@ -105,13 +108,37 @@ import { UserProfile } from '../../core/models/app.models';
   `]
 })
 export class UserManagementComponent implements OnInit {
+  private dataService = inject(DataService);
+  private dialog = inject(MatDialog);
+
   displayedColumns: string[] = ['user', 'role', 'status', 'actions'];
-  users: any[] = [
-    { displayName: 'Ibrahim Fall', email: 'ibrahim@gaydel.com', role: 'SUPER_ADMIN', status: 'active' },
-    { displayName: 'Awa Diop', email: 'awa@gaydel.com', role: 'STOCK_MANAGER', status: 'active' },
-    { displayName: 'Modou Sow', email: 'modou@gaydel.com', role: 'SALES_AGENT', status: 'active' },
-    { displayName: 'Ousmane Mane', email: 'ousmane@gaydel.com', role: 'SELLER', status: 'pending' }
-  ];
+  users$ = this.dataService.getList<UserProfile>('users');
 
   ngOnInit() {}
+
+  async addUser() {
+    const dialogRef = this.dialog.open(UserDialogComponent, {
+      width: '550px'
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+      if (result) {
+        try {
+          await this.dataService.add('users', {
+            ...result,
+            createdAt: new Date()
+          });
+          alert(`Profil pour ${result.displayName} créé !`);
+        } catch (e) {
+          alert('Erreur lors de la création');
+        }
+      }
+    });
+  }
+
+  async deleteUser(user: any) {
+    if (confirm(`Supprimer le profil de ${user.displayName} ?`)) {
+      await this.dataService.delete('users', user.id);
+    }
+  }
 }

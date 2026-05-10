@@ -1,13 +1,15 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { IconService } from '../../core/services/icon.service';
+import { DataService } from '../../core/services/data.service';
+import { combineLatest, map, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, AsyncPipe],
   template: `
     <div class="dashboard-page">
       <div class="welcome-section">
@@ -15,12 +17,12 @@ import { IconService } from '../../core/services/icon.service';
         <p>Aperçu en temps réel de votre activité GAYDEL</p>
       </div>
 
-      <div class="kpi-grid">
+      <div class="kpi-grid" *ngIf="stats$ | async as s">
         <div class="kpi-card glass-card">
           <div class="icon-box coffee" [innerHTML]="iconService.getIcon('sales')"></div>
           <div class="content">
-            <span class="label">Ventes Totales</span>
-            <span class="value">1,250,000 FCFA</span>
+            <span class="label">Ventes (Estimées)</span>
+            <span class="value">{{s.sales}} FCFA</span>
             <span class="trend positive">+12% vs hier</span>
           </div>
         </div>
@@ -28,7 +30,7 @@ import { IconService } from '../../core/services/icon.service';
           <div class="icon-box green" [innerHTML]="iconService.getIcon('users')"></div>
           <div class="content">
             <span class="label">Vendeurs Actifs</span>
-            <span class="value">24</span>
+            <span class="value">{{s.sellers}}</span>
             <span class="trend">En ligne</span>
           </div>
         </div>
@@ -36,16 +38,18 @@ import { IconService } from '../../core/services/icon.service';
           <div class="icon-box brown" [innerHTML]="iconService.getIcon('stock')"></div>
           <div class="content">
             <span class="label">Stock Global</span>
-            <span class="value">150 kg</span>
-            <span class="trend negative">Alerte faible (3 sites)</span>
+            <span class="value">{{s.stock}} {{s.stockUnit}}</span>
+            <span class="trend" [class.negative]="s.lowStock > 0">
+              {{s.lowStock > 0 ? s.lowStock + ' alertes faibles' : 'Stock optimal'}}
+            </span>
           </div>
         </div>
         <div class="kpi-card glass-card">
           <div class="icon-box blue" [innerHTML]="iconService.getIcon('prospects')"></div>
           <div class="content">
-            <span class="label">Nouveaux Prospects</span>
-            <span class="value">8</span>
-            <span class="trend positive">+3 ce matin</span>
+            <span class="label">Prospects</span>
+            <span class="value">{{s.prospects}}</span>
+            <span class="trend positive">+{{s.newProspects}} ce matin</span>
           </div>
         </div>
       </div>
@@ -153,6 +157,23 @@ import { IconService } from '../../core/services/icon.service';
 })
 export class DashboardComponent implements OnInit {
   iconService = inject(IconService);
+  private dataService = inject(DataService);
+
+  stats$ = combineLatest([
+    this.dataService.getList<any>('users'),
+    this.dataService.getList<any>('stock'),
+    this.dataService.getList<any>('prospects')
+  ]).pipe(
+    map(([users, stock, prospects]) => ({
+      sales: '1,250,000', // Mocked as we don't have sales col yet
+      sellers: users.filter(u => u.role === 'SELLER').length || 0,
+      stock: stock.reduce((acc, curr) => acc + (curr.quantity || 0), 0),
+      stockUnit: stock[0]?.unit || 'kg',
+      lowStock: stock.filter(s => s.quantity <= (s.minThreshold || 20)).length,
+      prospects: prospects.length,
+      newProspects: prospects.filter(p => p.status === 'NEW').length
+    }))
+  );
 
   public lineChartData: ChartConfiguration['data'] = {
     datasets: [

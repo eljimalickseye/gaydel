@@ -1,14 +1,18 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { DataService } from '../../core/services/data.service';
+import { map, Observable } from 'rxjs';
 import { IconService } from '../../core/services/icon.service';
+import { ProspectDialogComponent } from './prospect-dialog';
 
 @Component({
   selector: 'app-prospect-management',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, AsyncPipe, MatDialogModule],
   template: `
     <div class="prospects-page">
       <div class="header">
@@ -16,20 +20,20 @@ import { IconService } from '../../core/services/icon.service';
           <h2>Pipeline Commercial</h2>
           <p>Gérez vos prospects et convertissez-les en clients fidèles.</p>
         </div>
-        <button class="premium-btn coffee-gradient flex-center">
+        <button class="premium-btn coffee-gradient flex-center" (click)="addProspect()">
           <mat-icon>person_add</mat-icon> Nouveau Prospect
         </button>
       </div>
 
-      <div class="pipeline-container">
-        <div class="pipeline-column" *ngFor="let col of columns">
+      <div class="pipeline-container" *ngIf="prospects$ | async as prospects">
+        <div class="pipeline-column" *ngFor="let col of columnDefs">
           <div class="column-header">
-            <h3>{{col.title}}</h3>
-            <span class="count">{{col.items.length}}</span>
+            <h3>{{col.label}}</h3>
+            <span class="count">{{getProspectsByStatus(prospects, col.id).length}}</span>
           </div>
           
           <div class="column-content">
-            <mat-card class="prospect-card glass-card" *ngFor="let p of col.items">
+            <mat-card class="prospect-card glass-card" *ngFor="let p of getProspectsByStatus(prospects, col.id)">
               <mat-card-header>
                 <div mat-card-avatar class="avatar">{{p.name.charAt(0)}}</div>
                 <mat-card-title>{{p.name}}</mat-card-title>
@@ -40,14 +44,13 @@ import { IconService } from '../../core/services/icon.service';
                   <div class="item">
                     <mat-icon>phone</mat-icon> <span>{{p.phone}}</span>
                   </div>
-                  <div class="item">
-                    <mat-icon>history</mat-icon> <span>Dernier contact: {{p.lastContact}}</span>
-                  </div>
                 </div>
               </mat-card-content>
               <mat-card-actions>
-                <button mat-button color="primary">Détails</button>
-                <button mat-icon-button><mat-icon>more_vert</mat-icon></button>
+                <button mat-icon-button color="warn" (click)="deleteProspect(p)"><mat-icon>delete</mat-icon></button>
+                <div class="spacer"></div>
+                <button mat-icon-button (click)="moveProspect(p, 'prev')" [disabled]="col.id === 'NEW'"><mat-icon>arrow_back</mat-icon></button>
+                <button mat-icon-button (click)="moveProspect(p, 'next')" [disabled]="col.id === 'CONVERTED'"><mat-icon>arrow_forward</mat-icon></button>
               </mat-card-actions>
             </mat-card>
           </div>
@@ -107,21 +110,60 @@ import { IconService } from '../../core/services/icon.service';
   `]
 })
 export class ProspectManagementComponent implements OnInit {
+  private dataService = inject(DataService);
   iconService = inject(IconService);
+  dialog = inject(MatDialog);
 
-  columns = [
-    { title: 'Nouveau', items: [
-      { name: 'Jean Dupont', company: 'Hôtel Pullman', phone: '77 123 45 67', lastContact: '2j' },
-      { name: 'Fatou Ndiaye', company: 'Café de la Place', phone: '78 987 65 43', lastContact: '1j' }
-    ]},
-    { title: 'Contacté', items: [
-      { name: 'Moussa Sall', company: 'Restaurant Le Terrou-Bi', phone: '70 555 44 33', lastContact: '3h' }
-    ]},
-    { title: 'Qualifié', items: [
-      { name: 'Aicha Kane', company: 'Aéroport AIBD', phone: '76 444 22 11', lastContact: '5j' }
-    ]},
-    { title: 'Converti', items: [] }
+  prospects$ = this.dataService.getList<any>('prospects', { sortField: 'createdAt', sortDirection: 'desc' });
+
+  columnDefs = [
+    { id: 'NEW', label: 'Nouveau' },
+    { id: 'CONTACTED', label: 'Contacté' },
+    { id: 'QUALIFIED', label: 'Qualifié' },
+    { id: 'CONVERTED', label: 'Converti' }
   ];
 
   ngOnInit() {}
+
+  getProspectsByStatus(prospects: any[], status: string) {
+    return prospects.filter(p => p.status === status);
+  }
+
+  async addProspect() {
+    const dialogRef = this.dialog.open(ProspectDialogComponent, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+      if (result) {
+        await this.dataService.add('prospects', {
+          ...result,
+          createdAt: new Date()
+        });
+      }
+    });
+  }
+
+  async moveProspect(prospect: any, direction: 'next' | 'prev') {
+    const currentIndex = this.columnDefs.findIndex(c => c.id === prospect.status);
+    let newIndex = currentIndex;
+
+    if (direction === 'next' && currentIndex < this.columnDefs.length - 1) {
+      newIndex++;
+    } else if (direction === 'prev' && currentIndex > 0) {
+      newIndex--;
+    }
+
+    if (newIndex !== currentIndex) {
+      await this.dataService.update('prospects', prospect.id, { 
+        status: this.columnDefs[newIndex].id 
+      });
+    }
+  }
+
+  async deleteProspect(prospect: any) {
+    if (confirm(`Supprimer le prospect ${prospect.name} ?`)) {
+      await this.dataService.delete('prospects', prospect.id);
+    }
+  }
 }

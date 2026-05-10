@@ -30,10 +30,12 @@ import { ThemeService } from '../../../core/services/theme.service';
         <div class="divider"></div>
         <ng-container *ngIf="authService.user$ | async as user">
           <div class="info">
-            <span class="name">{{ user.displayName }}</span>
+            <span class="name">{{ user.displayName || 'Utilisateur' }}</span>
             <span class="role">{{ user.role }}</span>
           </div>
-          <img [src]="user.photoURL || 'https://via.placeholder.com/40'" alt="Avatar" class="avatar">
+          <div class="avatar-container">
+            <img [src]="user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.uid" alt="" class="avatar">
+          </div>
         </ng-container>
       </div>
     </header>
@@ -41,61 +43,47 @@ import { ThemeService } from '../../../core/services/theme.service';
   styles: [`
     .header-container {
       height: 70px;
-      margin: 20px;
+      margin: 20px 20px 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
+      padding: 0 25px;
       box-sizing: border-box;
       background: var(--surface-color);
       color: var(--text-color);
-    }
-    .theme-toggle {
-      cursor: pointer;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      padding: 8px;
-      border-radius: 50%;
-      transition: background 0.3s;
-      &:hover { background: rgba(0,0,0,0.05); color: var(--primary-color); }
-    }
-    .search-bar {
-      input {
-        background: rgba(0,0,0,0.05);
-        border: none;
-        padding: 10px 20px;
-        border-radius: 12px;
-        width: 300px;
-        outline: none;
-        &::placeholder { color: var(--text-muted); }
-      }
+      border-radius: 16px;
     }
     .user-profile {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 20px;
     }
-    .divider { width: 1px; height: 30px; background: rgba(0,0,0,0.1); }
+    .theme-toggle, .notifications-icon {
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.03);
+      transition: all 0.3s;
+      &:hover { background: var(--primary-color); color: #fff; }
+    }
+    .divider { width: 1px; height: 35px; background: rgba(0,0,0,0.1); margin: 0 5px; }
     .info {
       display: flex;
       flex-direction: column;
       text-align: right;
-      .name { font-weight: 600; font-size: 0.9rem; }
-      .role { font-size: 0.75rem; color: var(--text-muted); text-transform: lowercase; }
+      .name { font-weight: 700; font-size: 0.95rem; color: var(--primary-color); }
+      .role { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
     }
     .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
       object-fit: cover;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .notifications-icon {
-      color: var(--text-muted);
-      cursor: pointer;
-      &:hover { color: var(--primary-color); }
+      border: 2px solid var(--secondary-color);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
   `]
 })

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap, firstValueFrom, timeout, catchError } from 'rxjs';
 import { UserProfile, UserRole } from '../models/app.models';
 
 @Injectable({
@@ -16,7 +16,18 @@ export class AuthService {
   user$: Observable<UserProfile | null> = authState(this.auth).pipe(
     switchMap(user => {
       if (user) {
-        return this.getUserProfile(user.uid);
+        return this.getUserProfile(user.uid).pipe(
+          timeout(5000),
+          catchError(() => of({ 
+            uid: user.uid, 
+            email: user.email || '', 
+            displayName: user.displayName || 'User',
+            photoURL: user.photoURL || '',
+            role: 'SELLER' as any,
+            status: 'active' as any,
+            createdAt: new Date()
+          }))
+        );
       } else {
         return of(null);
       }
@@ -24,26 +35,42 @@ export class AuthService {
   );
 
   async loginWithEmail(email: string, pass: string) {
-    return signInWithEmailAndPassword(this.auth, email, pass);
+    const credential = await signInWithEmailAndPassword(this.auth, email, pass);
+    await this.handlePostLogin(credential.user);
+    return credential;
   }
 
   async loginWithGoogle() {
     const provider = new GoogleAuthProvider();
     const credential = await signInWithPopup(this.auth, provider);
-    const user = credential.user;
-    
-    // Check if profile exists, if not create as SELLER by default or handle accordingly
-    const profile = await this.getUserProfile(user.uid).toPromise();
-    if (!profile) {
-      await this.createUserProfile(user.uid, {
-        uid: user.uid,
-        email: user.email!,
-        displayName: user.displayName || 'User',
-        photoURL: user.photoURL || '',
-        role: 'SELLER',
-        status: 'pending',
-        createdAt: new Date()
-      });
+    await this.handlePostLogin(credential.user);
+    return credential;
+  }
+
+  private async handlePostLogin(user: any) {
+    try {
+      // Use firstValueFrom with a timeout of 5s to avoid blocking the UI
+      const profile = await firstValueFrom(
+        this.getUserProfile(user.uid).pipe(
+          timeout(5000),
+          catchError(() => of(null))
+        )
+      );
+
+      if (!profile) {
+        const role = user.email === 'admin@gaydel.com' ? 'SUPER_ADMIN' : 'SELLER';
+        await this.createUserProfile(user.uid, {
+          uid: user.uid,
+          email: user.email!,
+          displayName: user.displayName || (user.email === 'admin@gaydel.com' ? 'Administrateur' : 'User'),
+          photoURL: user.photoURL || '',
+          role: role as any,
+          status: 'active',
+          createdAt: new Date()
+        });
+      }
+    } catch (e) {
+      console.warn('Profile sync bypassed due to error or timeout:', e);
     }
   }
 
