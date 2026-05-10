@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { SidebarComponent } from '../components/sidebar/sidebar.ts';
-import { HeaderComponent } from '../components/header/header.ts';
+import { SidebarComponent } from '../components/sidebar/sidebar';
+import { HeaderComponent } from '../components/header/header';
 
 @Component({
   selector: 'app-main-layout',

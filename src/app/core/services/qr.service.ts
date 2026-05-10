@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { DataService } from './data.service';
 import { QRCodeData } from '../models/app.models';
-import { v4 as uuidv4 } from 'uuid'; // I might need to install uuid or use a simple random string
 
 @Injectable({
   providedIn: 'root'
