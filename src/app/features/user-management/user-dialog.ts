@@ -42,10 +42,17 @@ import { MatIconModule } from '@angular/material/icon';
                 <input matInput formControlName="username" placeholder="moussa.diop">
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
-                <mat-label>Email</mat-label>
-                <input matInput formControlName="email" placeholder="moussa@gaydel.com">
-              </mat-form-field>
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Email (Optionnel)</mat-label>
+                  <input matInput formControlName="email" placeholder="moussa@gaydel.com">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Téléphone (WhatsApp)</mat-label>
+                  <input matInput formControlName="phone" placeholder="221770000000">
+                </mat-form-field>
+              </div>
             </div>
             <div class="stepper-actions">
               <button mat-flat-button class="coffee-gradient" matStepperNext>Suivant</button>
@@ -76,24 +83,37 @@ import { MatIconModule } from '@angular/material/icon';
 
         <!-- Step 3: Confirmation -->
         <mat-step>
-          <ng-template matStepLabel>Validation</ng-template>
-          <div class="summary-card glass-card">
-            <div class="summary-item">
-              <label>Utilisateur :</label>
-              <span>{{infoForm.value.displayName}} ({{infoForm.value.username}})</span>
+          <ng-template matStepLabel>Accès</ng-template>
+          <div class="credentials-card">
+            <div class="header-c">
+              <mat-icon>verified_user</mat-icon>
+              <h3>Identifiants Générés</h3>
             </div>
-            <div class="summary-item">
-              <label>Rôle attribué :</label>
-              <span class="role-badge">{{getRoleLabel(selectedRole)}}</span>
+            
+            <div class="cred-row">
+              <div class="item">
+                <label>Identifiant</label>
+                <div class="value-box">{{infoForm.value.username}}</div>
+              </div>
+              <div class="item">
+                <label>Mot de passe</label>
+                <div class="value-box highlight">{{generatedPassword}}</div>
+              </div>
             </div>
-            <p class="warning-text">
-              <mat-icon>info</mat-icon>
-              Le compte sera créé dans Firestore. N'oubliez pas de l'ajouter dans la console Firebase Auth avec l'email <strong>{{infoForm.value.email}}</strong>.
-            </p>
+
+            <div class="action-buttons">
+              <button mat-stroked-button (click)="copyCredentials()">
+                <mat-icon>content_copy</mat-icon> Copier
+              </button>
+              <button mat-stroked-button color="primary" (click)="shareWhatsApp()" [disabled]="!infoForm.value.phone">
+                <mat-icon>chat</mat-icon> WhatsApp
+              </button>
+            </div>
           </div>
+
           <div class="stepper-actions">
             <button mat-button matStepperPrevious>Retour</button>
-            <button mat-flat-button class="coffee-gradient" (click)="save()">Confirmer la création</button>
+            <button mat-flat-button class="coffee-gradient" (click)="save()">Terminer & Enregistrer</button>
           </div>
         </mat-step>
       </mat-stepper>
@@ -102,6 +122,7 @@ import { MatIconModule } from '@angular/material/icon';
   styles: [`
     .dialog-container { min-width: 500px; padding: 10px; }
     .form-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .custom-stepper { background: transparent; }
     .stepper-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     
@@ -118,10 +139,15 @@ import { MatIconModule } from '@angular/material/icon';
     .role-name { font-weight: 700; font-size: 0.9rem; color: #3e2723; }
     .role-desc { font-size: 0.7rem; color: #777; }
 
-    .summary-card { padding: 20px; margin-top: 20px; }
-    .summary-item { display: flex; flex-direction: column; margin-bottom: 15px; label { font-size: 0.8rem; color: #777; } span { font-weight: 700; } }
-    .role-badge { display: inline-block; padding: 4px 12px; background: #3e2723; color: #fff; border-radius: 20px; font-size: 0.8rem; width: fit-content; }
-    .warning-text { display: flex; gap: 10px; font-size: 0.8rem; color: #856404; background: #fff3cd; padding: 10px; border-radius: 8px; margin-top: 20px; mat-icon { font-size: 18px; } }
+    .credentials-card { 
+      background: #fdf5e6; border: 1px dashed #d7b377; border-radius: 16px; padding: 25px; margin-top: 20px;
+      .header-c { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #3e2723; h3 { margin: 0; } }
+      .cred-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+      .item label { display: block; font-size: 0.75rem; color: #8d6e63; margin-bottom: 5px; text-transform: uppercase; font-weight: 800; }
+      .value-box { background: #fff; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 1.1rem; border: 1px solid #efebe9; }
+      .value-box.highlight { color: #3e2723; font-weight: 800; letter-spacing: 2px; }
+      .action-buttons { display: flex; gap: 10px; }
+    }
   `]
 })
 export class UserDialogComponent {
@@ -131,10 +157,13 @@ export class UserDialogComponent {
   infoForm = this.fb.group({
     displayName: ['', Validators.required],
     username: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]]
+    email: [''], // Optional
+    phone: ['']  // Added for WhatsApp
   });
 
   selectedRole = '';
+  generatedPassword = this.generatePass();
+  
   roles = [
     { id: 'SUPER_ADMIN', label: 'Administrateur', icon: 'security', desc: 'Accès total à la plateforme' },
     { id: 'STOCK_MANAGER', label: 'Gestionnaire Stock', icon: 'inventory_2', desc: 'Gestion des stocks et entrepôts' },
@@ -142,8 +171,24 @@ export class UserDialogComponent {
     { id: 'SELLER', label: 'Vendeur Terrain', icon: 'directions_run', desc: 'Application mobile et ventes terrain' }
   ];
 
+  generatePass() {
+    return Math.random().toString(36).slice(-8).toUpperCase();
+  }
+
   getRoleLabel(id: string) {
     return this.roles.find(r => r.id === id)?.label || id;
+  }
+
+  copyCredentials() {
+    const text = `Accès GAYDEL\nIdentifiant: ${this.infoForm.value.username}\nMot de passe: ${this.generatedPassword}\nURL: https://gaydel-907f1.web.app`;
+    navigator.clipboard.writeText(text);
+    alert('Identifiants copiés !');
+  }
+
+  shareWhatsApp() {
+    const text = `Bienvenue chez GAYDEL ! ☕\n\nVoici tes accès :\n👤 Identifiant : ${this.infoForm.value.username}\n🔑 Mot de passe : ${this.generatedPassword}\n\nLien : https://gaydel-907f1.web.app`;
+    const phone = this.infoForm.value.phone?.replace(/\s/g, '');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
   save() {
@@ -151,6 +196,7 @@ export class UserDialogComponent {
       this.dialogRef.close({
         ...this.infoForm.value,
         role: this.selectedRole,
+        tempPassword: this.generatedPassword,
         status: 'active'
       });
     }

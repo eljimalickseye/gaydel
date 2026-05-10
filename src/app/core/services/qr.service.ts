@@ -9,11 +9,8 @@ export class QRService {
   private dataService = inject(DataService);
 
   generateUserQR(userId: string): string {
-    // In a real app, this would be a secure token stored in Firestore
-    // For now, we'll return a link to a profile or a token
-    const token = Math.random().toString(36).substring(2);
-    this.dataService.update('users', userId, { qrToken: token });
-    return `gaydel://user/${userId}?token=${token}`;
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/connect/${userId}`;
   }
 
   validateQR(userId: string, token: string): Promise<boolean> {
