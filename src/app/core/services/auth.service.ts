@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from '@angular/fire/auth';
+import { Auth, authState, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, signInWithPhoneNumber, RecaptchaVerifier, ConfirmationResult } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
 import { Observable, of, switchMap } from 'rxjs';
@@ -45,6 +45,16 @@ export class AuthService {
         createdAt: new Date()
       });
     }
+  }
+
+  setupRecaptcha(containerId: string): RecaptchaVerifier {
+    return new RecaptchaVerifier(this.auth, containerId, {
+      size: 'invisible'
+    });
+  }
+
+  async loginWithPhone(phoneNumber: string, appVerifier: RecaptchaVerifier): Promise<ConfirmationResult> {
+    return signInWithPhoneNumber(this.auth, phoneNumber, appVerifier);
   }
 
   async logout() {

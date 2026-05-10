@@ -14,6 +14,16 @@
   --shadow-modern: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
 
+.dark-theme {
+  --bg-color: #121212;
+  --surface-color: rgba(30, 30, 30, 0.8);
+  --text-color: #e0e0e0;
+  --text-muted: #9e9e9e;
+  --glass-bg: rgba(30, 30, 30, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --shadow-modern: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
 html, body {
   height: 100%;
   margin: 0;
