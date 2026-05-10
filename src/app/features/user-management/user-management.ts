@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { DataService } from '../../core/services/data.service';
 import { UserProfile } from '../../core/models/app.models';
 import { AuthService } from '../../core/services/auth.service';
@@ -13,7 +14,7 @@ import { UserDialogComponent } from './user-dialog';
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, AsyncPipe, MatDialogModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, AsyncPipe, MatDialogModule, MatMenuModule],
   template: `
     <div class="users-page">
       <div class="header">
@@ -32,10 +33,10 @@ import { UserDialogComponent } from './user-dialog';
             <th mat-header-cell *matHeaderCellDef> Utilisateur </th>
             <td mat-cell *matCellDef="let element"> 
               <div class="user-cell">
-                <img [src]="element.photoURL || 'https://via.placeholder.com/40'" alt="Avatar">
+                <img [src]="element.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + element.uid" alt="Avatar">
                 <div class="info">
                   <span class="name">{{element.displayName}}</span>
-                  <span class="email">{{element.email}}</span>
+                  <span class="email">{{element.email || element.username + '@gaydel.com'}}</span>
                 </div>
               </div>
             </td>
@@ -56,15 +57,41 @@ import { UserDialogComponent } from './user-dialog';
             <th mat-header-cell *matHeaderCellDef> Statut </th>
             <td mat-cell *matCellDef="let element">
               <span class="status-dot" [ngClass]="element.status"></span>
-              {{element.status === 'active' ? 'Actif' : 'En attente'}}
+              {{element.status === 'active' ? 'Actif' : 'Inactif'}}
             </td>
           </ng-container>
 
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef> Actions </th>
             <td mat-cell *matCellDef="let element">
-              <button mat-icon-button color="primary"><mat-icon>security</mat-icon></button>
-              <button mat-icon-button color="warn" (click)="deleteUser(element)"><mat-icon>delete</mat-icon></button>
+              <div class="action-buttons">
+                <button mat-icon-button class="edit-btn" (click)="editUser(element)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                
+                <button mat-icon-button [matMenuTriggerFor]="menu">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                
+                <mat-menu #menu="matMenu" class="smart-menu">
+                  <button mat-menu-item (click)="toggleStatus(element)">
+                    <mat-icon [color]="element.status === 'active' ? 'warn' : 'primary'">
+                      {{element.status === 'active' ? 'block' : 'check_circle'}}
+                    </mat-icon>
+                    <span>{{element.status === 'active' ? 'Désactiver' : 'Activer'}}</span>
+                  </button>
+                  
+                  <button mat-menu-item (click)="shareWhatsApp(element)">
+                    <mat-icon style="color: #25D366">chat</mat-icon>
+                    <span>Renvoyer via WhatsApp</span>
+                  </button>
+
+                  <button mat-menu-item (click)="deleteUser(element)" class="delete-item">
+                    <mat-icon color="warn">delete</mat-icon>
+                    <span>Supprimer le compte</span>
+                  </button>
+                </mat-menu>
+              </div>
             </td>
           </ng-container>
 
@@ -103,8 +130,11 @@ import { UserDialogComponent } from './user-dialog';
     .status-dot {
       display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px;
       &.active { background: #2e7d32; }
-      &.pending { background: #ffa000; }
+      &.inactive { background: #ffa000; }
     }
+    .action-buttons { display: flex; align-items: center; gap: 5px; }
+    .edit-btn { color: #5d4037; }
+    .delete-item span { color: #f44336; }
   `]
 })
 export class UserManagementComponent implements OnInit {
@@ -134,6 +164,30 @@ export class UserManagementComponent implements OnInit {
         }
       }
     });
+  }
+
+  async editUser(user: UserProfile) {
+    const dialogRef = this.dialog.open(UserDialogComponent, {
+      width: '550px',
+      data: { user } // Passing current data for pre-fill if we update dialog
+    });
+
+    dialogRef.afterClosed().subscribe(async result => {
+      if (result) {
+        await this.dataService.update('users', (user as any).id, result);
+      }
+    });
+  }
+
+  async toggleStatus(user: UserProfile) {
+    const newStatus = user.status === 'active' ? 'inactive' : 'active';
+    await this.dataService.update('users', (user as any).id, { status: newStatus });
+  }
+
+  shareWhatsApp(user: UserProfile) {
+    const text = `Accès GAYDEL ☕\n\nIdentifiant : ${user.username}\nLien : https://gaydel-907f1.web.app`;
+    const phone = user.phone?.replace(/\s/g, '');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
   }
 
   async deleteUser(user: any) {

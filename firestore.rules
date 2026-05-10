@@ -2,24 +2,39 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper function to check roles
+    function hasRole(role) {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    function hasAnyRole(roles) {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in roles;
+    }
+
     // Profils Utilisateurs
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN');
+      allow write: if request.auth != null && (request.auth.uid == userId || hasRole('SUPER_ADMIN'));
     }
     
     // Stocks
     match /stock/{itemId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['SUPER_ADMIN', 'STOCK_MANAGER']);
+      allow write: if request.auth != null && hasAnyRole(['SUPER_ADMIN', 'STOCK_MANAGER']);
     }
     
     // Prospects
     match /prospects/{prospectId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['SUPER_ADMIN', 'SALES_AGENT']);
+      allow write: if request.auth != null && hasAnyRole(['SUPER_ADMIN', 'SALES_AGENT', 'SELLER']);
     }
     
+    // Ventes
+    match /sales/{saleId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && hasAnyRole(['SUPER_ADMIN', 'SALES_AGENT', 'SELLER']);
+    }
+
     // Notifications
     match /notifications/{notifId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;

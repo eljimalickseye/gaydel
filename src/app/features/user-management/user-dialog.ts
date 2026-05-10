@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -24,7 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
   ],
   template: `
     <div class="dialog-container">
-      <h2 mat-dialog-title>Ajouter un Utilisateur</h2>
+      <h2 mat-dialog-title>{{ isEdit ? 'Modifier l\\'Utilisateur' : 'Ajouter un Utilisateur' }}</h2>
       
       <mat-stepper #stepper class="custom-stepper">
         <!-- Step 1: Basic Info -->
@@ -150,9 +150,10 @@ import { MatIconModule } from '@angular/material/icon';
     }
   `]
 })
-export class UserDialogComponent {
+export class UserDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<UserDialogComponent>);
+  public data = inject(MAT_DIALOG_DATA, { optional: true });
 
   infoForm = this.fb.group({
     displayName: ['', Validators.required],
@@ -163,6 +164,7 @@ export class UserDialogComponent {
 
   selectedRole = '';
   generatedPassword = this.generatePass();
+  isEdit = false;
   
   roles = [
     { id: 'SUPER_ADMIN', label: 'Administrateur', icon: 'security', desc: 'Accès total à la plateforme' },
@@ -170,6 +172,31 @@ export class UserDialogComponent {
     { id: 'SALES_AGENT', label: 'Agent Commercial', icon: 'campaign', desc: 'Gestion des prospects et ventes' },
     { id: 'SELLER', label: 'Vendeur Terrain', icon: 'directions_run', desc: 'Application mobile et ventes terrain' }
   ];
+
+  ngOnInit() {
+    if (this.data?.user) {
+      this.isEdit = true;
+      this.infoForm.patchValue(this.data.user);
+      this.selectedRole = this.data.user.role;
+    }
+
+    this.infoForm.get('displayName')?.valueChanges.subscribe(name => {
+      if (name && !this.isEdit) { // Only auto-generate if NOT editing
+        const generated = this.generateSmartUsername(name);
+        this.infoForm.get('username')?.patchValue(generated, { emitEvent: false });
+      }
+    });
+  }
+
+  generateSmartUsername(name: string): string {
+    const parts = name.trim().toLowerCase().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0]}.${parts[1]}`;
+    } else if (parts[0].length >= 4) {
+      return `${parts[0].substring(0, 3)}.${parts[0].substring(3)}`;
+    }
+    return parts[0];
+  }
 
   generatePass() {
     return Math.random().toString(36).slice(-8).toUpperCase();

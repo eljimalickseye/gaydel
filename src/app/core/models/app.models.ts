@@ -7,6 +7,8 @@ export interface UserProfile {
   photoURL?: string;
   role: UserRole;
   phoneNumber?: string;
+  phone?: string;
+  username?: string;
   createdAt: any;
   lastLogin?: any;
   status: 'active' | 'inactive' | 'pending';

@@ -11,6 +11,7 @@ import { getAnalytics, provideAnalytics, ScreenTrackingService, UserTrackingServ
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatMenuModule } from '@angular/material/menu';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { environment } from '../environments/environment';
 
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideAnimationsAsync(),
-    importProvidersFrom(MatSnackBarModule, MatDialogModule, MatStepperModule),
+    importProvidersFrom(MatSnackBarModule, MatDialogModule, MatStepperModule, MatMenuModule),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
