@@ -1,39 +1,41 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { QRCodeModule } from 'angularx-qrcode';
+import { CommonModule, AsyncPipe } from '@angular/common';
+import { QRCodeComponent } from 'angularx-qrcode';
 import { AuthService } from '../../core/services/auth.service';
 import { QRService } from '../../core/services/qr.service';
 
 @Component({
   selector: 'app-my-qr',
   standalone: true,
-  imports: [CommonModule, QRCodeModule],
+  imports: [CommonModule, AsyncPipe, QRCodeComponent],
   template: `
     <div class="qr-page flex-center">
-      <div class="qr-card glass-card" *ngIf="authService.user$ | async as user">
-        <h2>Mon QR Code Dynamique</h2>
-        <p>Présentez ce code pour valider votre stock ou vos ventes.</p>
-        
-        <div class="qr-container">
-          <qrcode 
-            [qrdata]="qrData" 
-            [width]="256" 
-            [errorCorrectionLevel]="'M'"
-            [colorDark]="'#3e2723'"
-            [colorLight]="'#ffffff00'">
-          </qrcode>
-        </div>
+      @if (authService.user$ | async; as user) {
+        <div class="qr-card glass-card">
+          <h2>Mon QR Code Dynamique</h2>
+          <p>Présentez ce code pour valider votre stock ou vos ventes.</p>
+          
+          <div class="qr-container">
+            <qrcode 
+              [qrdata]="qrData" 
+              [width]="256" 
+              [errorCorrectionLevel]="'M'"
+              [colorDark]="'#3e2723'"
+              [colorLight]="'#ffffff00'">
+            </qrcode>
+          </div>
 
-        <div class="user-info">
-          <span class="name">{{ user.displayName }}</span>
-          <span class="id">ID: {{ user.uid.substring(0,8) }}</span>
-        </div>
+          <div class="user-info">
+            <span class="name">{{ user.displayName }}</span>
+            <span class="id">ID: {{ user.uid.substring(0,8) }}</span>
+          </div>
 
-        <div class="status-badge active">
-          <span class="dot"></span>
-          Sécurisé & Actif
+          <div class="status-badge active">
+            <span class="dot"></span>
+            Sécurisé & Actif
+          </div>
         </div>
-      </div>
+      }
     </div>
   `,
   styles: [`
