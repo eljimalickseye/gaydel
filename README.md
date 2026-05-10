@@ -1,59 +1,44 @@
-# Gaydel
+# GAYDEL - Gestion & Vente de Café Premium
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.10.
+GAYDEL est une application web progressive (PWA) ultra moderne dédiée à la gestion et à la vente de café, construite avec Angular et Firebase.
 
-## Development server
+## Fonctionnalités Clés
 
-To start a local development server, run:
+- **Tableau de Bord Premium**: Visualisation des KPIs et ventes en temps réel.
+- **Géolocalisation Temps Réel**: Suivi des vendeurs de café sur une carte interactive.
+- **QR Code Dynamique**: Chaque utilisateur possède un QR code unique pour les transactions sécurisées.
+- **Gestion de Stock**: Système avancé pour les gestionnaires de stock avec alertes de seuil.
+- **Pipeline Commercial**: Gestion des prospects pour les agents commerciaux.
+- **Multi-rôles**: Accès basé sur les rôles (Super Admin, Gestionnaire, Agent, Vendeur).
 
-```bash
-ng serve
-```
+## Stack Technique
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Frontend**: Angular (Latest), Angular Material, RxJS, Chart.js, Leaflet.
+- **Backend**: Firebase (Auth, Firestore, Storage, Hosting).
+- **Design**: SCSS, Glassmorphism, Coffee-inspired palette.
 
-## Code scaffolding
+## Installation
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+1. Clonez le dépôt.
+2. Installez les dépendances :
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+3. Configurez votre projet Firebase dans `src/environments/environment.ts`.
+4. Lancez l'application en mode développement :
+   ```bash
+   npm run dev
+   ```
 
-```bash
-ng generate component component-name
-```
+## Déploiement
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Pour déployer sur Firebase Hosting :
 
-```bash
-ng generate --help
-```
+1. Installez Firebase CLI : `npm install -g firebase-tools`
+2. Connectez-vous : `firebase login`
+3. Initialisez Firebase : `firebase init`
+4. Construisez le projet : `npm run build`
+5. Déployez : `firebase deploy`
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+© 2024 GAYDEL Platform. Tous droits réservés.
