@@ -88,10 +88,21 @@ export class SellerMapComponent implements OnInit, AfterViewInit, OnDestroy {
         const marker = L.marker([lat, lng], { icon: customIcon })
           .addTo(this.map)
           .bindPopup(`
-            <div style="font-family: 'Outfit', sans-serif; padding: 5px;">
-              <strong style="color: #3e2723; font-size: 1rem;">${seller.displayName}</strong><br>
-              <span style="color: #666; font-size: 0.8rem;">Vendeur GAYDEL</span><br>
-              <div style="margin-top: 5px; color: #2e7d32; font-weight: bold;">Statut: En ligne</div>
+            <div style="font-family: 'Outfit', sans-serif; padding: 12px; min-width: 180px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="width: 32px; height: 32px; background: #4B3621; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">☕</div>
+                <div>
+                  <div style="color: #4B3621; font-weight: 800; font-size: 1rem;">${seller.displayName}</div>
+                  <div style="color: #6B5D57; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Vendeur Certifié</div>
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05);">
+                <span style="font-size: 0.75rem; color: #2D6A4F; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                  <span style="width: 6px; height: 6px; background: #2D6A4F; border-radius: 50%;"></span>
+                  ACTIF
+                </span>
+                <span style="font-size: 0.75rem; color: #4B3621; font-weight: 600;">Dakar, SN</span>
+              </div>
             </div>
           `);
         

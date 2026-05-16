@@ -1,0 +1,110 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  // Coffee Premium Palette
+  --primary: #4B3621;         // Espresso
+  --primary-light: #6F4E37;   // Coffee
+  --secondary: #1B3022;       // Forest Green
+  --accent: #D4AF37;          // Gold / Bronze
+  --bg-cream: #FDFBF7;        // Light Cream
+  --surface: #FFFFFF;
+  --text-main: #2C1810;       // Dark Roast
+  --text-muted: #6B5D57;
+  
+  // Status Colors
+  --success: #2D6A4F;
+  --warning: #B08968;
+  --error: #9D0208;
+  
+  // Shadows & Effects
+  --shadow-sm: 0 2px 4px rgba(44, 24, 16, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(44, 24, 16, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-cream);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Global Layout Classes
+.container-premium {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(44, 24, 16, 0.12);
+  }
+}
+
+.btn-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.primary {
+    background-color: var(--primary);
+    color: white;
+    &:hover { background-color: var(--primary-light); }
+  }
+  
+  &.accent {
+    background-color: var(--accent);
+    color: var(--primary);
+    &:hover { opacity: 0.9; }
+  }
+}
+
+// Icons styling
+.svg-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 4px;
+}

@@ -43,20 +43,35 @@ import { ThemeService } from '../../../core/services/theme.service';
   styles: [`
     .header-container {
       height: 70px;
-      margin: 20px 20px 0;
+      margin: 1.5rem 1.5rem 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 25px;
+      padding: 0 1.5rem;
       box-sizing: border-box;
-      background: var(--surface-color);
-      color: var(--text-color);
-      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+    .search-bar {
+      input {
+        background: var(--bg-cream);
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 10px 20px;
+        border-radius: 12px;
+        width: 300px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        outline: none;
+        transition: all 0.2s ease;
+        &:focus { width: 350px; border-color: var(--primary-light); }
+      }
     }
     .user-profile {
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 1.5rem;
     }
     .theme-toggle, .notifications-icon {
       cursor: pointer;
@@ -65,25 +80,35 @@ import { ThemeService } from '../../../core/services/theme.service';
       align-items: center;
       padding: 10px;
       border-radius: 12px;
-      background: rgba(0,0,0,0.03);
-      transition: all 0.3s;
-      &:hover { background: var(--primary-color); color: #fff; }
+      background: var(--bg-cream);
+      transition: all 0.3s ease;
+      &:hover { background: var(--primary); color: white; transform: translateY(-2px); }
     }
-    .divider { width: 1px; height: 35px; background: rgba(0,0,0,0.1); margin: 0 5px; }
+    .divider { width: 1px; height: 30px; background: rgba(0,0,0,0.08); margin: 0 0.5rem; }
     .info {
       display: flex;
       flex-direction: column;
       text-align: right;
-      .name { font-weight: 700; font-size: 0.95rem; color: var(--primary-color); }
-      .role { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+      .name { font-weight: 700; font-size: 0.95rem; color: var(--primary); }
+      .role { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; margin-top: 1px; }
+    }
+    .avatar-container {
+      position: relative;
+      &::after {
+        content: ''; position: absolute; bottom: 2px; right: 2px;
+        width: 10px; height: 10px; background: var(--success);
+        border: 2px solid white; border-radius: 50%;
+      }
     }
     .avatar {
       width: 44px;
       height: 44px;
       border-radius: 14px;
       object-fit: cover;
-      border: 2px solid var(--secondary-color);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border: 2px solid var(--bg-cream);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+      &:hover { transform: scale(1.05); }
     }
   `]
 })

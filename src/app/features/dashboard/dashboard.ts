@@ -88,69 +88,73 @@ import { combineLatest, map, Observable } from 'rxjs';
     </div>
   `,
   styles: [`
-    .dashboard-page { padding-top: 10px; }
+    .dashboard-page { padding: 1.5rem 0; }
     .welcome-section {
-      margin-bottom: 30px;
-      h2 { margin: 0; color: var(--primary-color); font-weight: 800; }
-      p { margin: 5px 0 0; color: var(--text-muted); }
+      margin-bottom: 2.5rem;
+      h2 { margin: 0; color: var(--primary); font-weight: 800; font-size: 2rem; letter-spacing: -0.5px; }
+      p { margin: 8px 0 0; color: var(--text-muted); font-size: 1rem; }
     }
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
     }
     .kpi-card {
-      padding: 20px;
+      padding: 1.5rem;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.4);
       .icon-box {
-        width: 50px; height: 50px;
-        border-radius: 12px;
+        width: 54px; height: 54px;
+        border-radius: 16px;
         display: flex; align-items: center; justify-content: center;
-        &.coffee { background: #efebe9; color: #5d4037; }
-        &.green { background: #e8f5e9; color: #2e7d32; }
-        &.brown { background: #fdf5e6; color: #8d6e63; }
-        &.blue { background: #e3f2fd; color: #1976d2; }
-        svg { width: 24px; height: 24px; }
+        box-shadow: var(--shadow-sm);
+        &.coffee { background: #EFEBE9; color: var(--primary); }
+        &.green { background: #E8F5E9; color: #2D6A4F; }
+        &.brown { background: #FCF5E5; color: #B08968; }
+        &.blue { background: #E3F2FD; color: #1976D2; }
+        svg { width: 26px; height: 26px; }
       }
       .content {
         display: flex; flex-direction: column;
-        .label { font-size: 0.85rem; color: var(--text-muted); }
-        .value { font-size: 1.25rem; font-weight: 800; color: var(--primary-color); }
-        .trend { font-size: 0.75rem; margin-top: 4px;
-          &.positive { color: #2e7d32; }
-          &.negative { color: #c62828; }
+        .label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .value { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin: 2px 0; }
+        .trend { font-size: 0.75rem; font-weight: 600;
+          &.positive { color: var(--success); }
+          &.negative { color: var(--error); }
         }
       }
     }
     .charts-grid {
       display: grid;
       grid-template-columns: 2fr 1fr;
-      gap: 20px;
-      margin-bottom: 30px;
-      @media (max-width: 1024px) { grid-template-columns: 1fr; }
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+      @media (max-width: 1200px) { grid-template-columns: 1fr; }
     }
     .chart-container {
-      padding: 20px;
-      h3 { margin: 0 0 20px; font-size: 1.1rem; }
-      canvas { width: 100% !important; height: 300px !important; }
+      padding: 1.5rem;
+      h3 { margin: 0 0 1.5rem; font-size: 1.1rem; color: var(--primary); font-weight: 700; }
+      canvas { width: 100% !important; height: 320px !important; }
     }
     .recent-activities {
-      padding: 20px;
-      h3 { margin: 0 0 20px; }
+      padding: 1.5rem;
+      h3 { margin: 0 0 1.5rem; color: var(--primary); font-weight: 700; }
     }
     .activity-list {
-      display: flex; flex-direction: column; gap: 15px;
+      display: flex; flex-direction: column; gap: 1rem;
     }
     .activity-item {
-      display: flex; align-items: center; gap: 15px;
-      .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--secondary-color); }
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.8rem; border-radius: 12px; transition: background 0.2s ease;
+      &:hover { background: rgba(75, 54, 33, 0.03); }
+      .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px rgba(212, 175, 55, 0.4); }
       .text {
         display: flex; flex-direction: column;
-        font-size: 0.9rem;
-        span { font-size: 0.75rem; color: var(--text-muted); }
+        font-size: 0.95rem; color: var(--text-main);
+        span { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
       }
     }
   `]
